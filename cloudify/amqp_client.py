@@ -42,6 +42,7 @@ class AMQPClient(object):
                  amqp_user='guest',
                  amqp_pass='guest',
                  amqp_host='localhost',
+                 amqp_vhost='/',
                  ssl_cert_path=''):
         self.connection = None
         self.channel = None
@@ -53,6 +54,7 @@ class AMQPClient(object):
         self._connection_parameters = pika.ConnectionParameters(
             host=amqp_host,
             port=BROKER_PORT_SSL,
+            virtual_host=amqp_vhost,
             credentials=credentials,
             ssl=True,
             ssl_options=ssl_options)
@@ -120,6 +122,7 @@ class AMQPClient(object):
 def create_client(amqp_host=None,
                   amqp_user=None,
                   amqp_pass=None,
+                  amqp_vhost=None,
                   ssl_cert_path=None):
     thread = threading.current_thread()
 
@@ -130,6 +133,7 @@ def create_client(amqp_host=None,
         'amqp_host': broker_config.broker_hostname,
         'amqp_user': broker_config.broker_username,
         'amqp_pass': broker_config.broker_password,
+        'amqp_vhost': broker_config.broker_vhost,
         'ssl_cert_path': broker_config.broker_cert_path
     }
     defaults.update(cluster.get_cluster_amqp_settings())
@@ -137,6 +141,7 @@ def create_client(amqp_host=None,
         'amqp_user': amqp_user or defaults['amqp_user'],
         'amqp_host': amqp_host or defaults['amqp_host'],
         'amqp_pass': amqp_pass or defaults['amqp_pass'],
+        'amqp_vhost': amqp_vhost or defaults['amqp_vhost'],
         'ssl_cert_path': ssl_cert_path or defaults['ssl_cert_path']
     }
 
