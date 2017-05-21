@@ -24,6 +24,7 @@ from cloudify import broker_config
 from cloudify import cluster
 from cloudify import exceptions
 from cloudify import utils
+from cloudify.constants import BROKER_PORT_SSL
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,6 @@ class AMQPClient(object):
                  amqp_user='guest',
                  amqp_pass='guest',
                  amqp_host='localhost',
-                 ssl_enabled=False,
                  ssl_cert_path=''):
         self.connection = None
         self.channel = None
@@ -49,14 +49,12 @@ class AMQPClient(object):
         credentials = pika.credentials.PlainCredentials(
             username=amqp_user,
             password=amqp_pass)
-        amqp_port, ssl_options = utils.internal.get_broker_ssl_and_port(
-            ssl_enabled=ssl_enabled,
-            cert_path=ssl_cert_path)
+        ssl_options = utils.internal.get_broker_ssl_and_port(ssl_cert_path)
         self._connection_parameters = pika.ConnectionParameters(
             host=amqp_host,
-            port=amqp_port,
+            port=BROKER_PORT_SSL,
             credentials=credentials,
-            ssl=ssl_enabled,
+            ssl=True,
             ssl_options=ssl_options)
         self._connect()
 
@@ -122,7 +120,6 @@ class AMQPClient(object):
 def create_client(amqp_host=None,
                   amqp_user=None,
                   amqp_pass=None,
-                  ssl_enabled=None,
                   ssl_cert_path=None):
     thread = threading.current_thread()
 
@@ -133,7 +130,6 @@ def create_client(amqp_host=None,
         'amqp_host': broker_config.broker_hostname,
         'amqp_user': broker_config.broker_username,
         'amqp_pass': broker_config.broker_password,
-        'ssl_enabled': broker_config.broker_ssl_enabled,
         'ssl_cert_path': broker_config.broker_cert_path
     }
     defaults.update(cluster.get_cluster_amqp_settings())
@@ -141,7 +137,6 @@ def create_client(amqp_host=None,
         'amqp_user': amqp_user or defaults['amqp_user'],
         'amqp_host': amqp_host or defaults['amqp_host'],
         'amqp_pass': amqp_pass or defaults['amqp_pass'],
-        'ssl_enabled': ssl_enabled or defaults['ssl_enabled'],
         'ssl_cert_path': ssl_cert_path or defaults['ssl_cert_path']
     }
 
